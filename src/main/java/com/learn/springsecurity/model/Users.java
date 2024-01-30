@@ -31,13 +31,13 @@ public class Users implements UserDetails {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(length = 50, nullable = false)
+    @Column(nullable = false)
     private String name;
 
-    @Column(length = 100, nullable = false)
+    @Column(nullable = false)
     private String email;
 
-    @Column(length = 50, nullable = false)
+    @Column(nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -46,7 +46,7 @@ public class Users implements UserDetails {
     @Column(nullable = true)
     private String image;
 
-    @Column(length = 250, nullable = true)
+    @Column(nullable = true)
     private String address;
 
     @Override
