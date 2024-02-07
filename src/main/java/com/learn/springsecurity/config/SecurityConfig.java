@@ -1,16 +1,9 @@
 package com.learn.springsecurity.config;
 
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
-import static org.springframework.http.HttpMethod.DELETE;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.HEAD;
-import static org.springframework.http.HttpMethod.PATCH;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpMethod.PUT;
+import static com.learn.springsecurity.utils.MyConstant.HEADERS;
+import static com.learn.springsecurity.utils.MyConstant.METHODS;
+import static com.learn.springsecurity.utils.MyConstant.ORIGINS;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
-
-import java.util.Arrays;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,10 +45,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:4000"));
-        corsConfiguration.setAllowedHeaders(Arrays.asList(AUTHORIZATION, CONTENT_TYPE));
-        corsConfiguration.setAllowedMethods(Arrays.asList(GET.name(), POST.name(), PATCH.name(),
-                PUT.name(), DELETE.name(), HEAD.name()));
+        corsConfiguration.setAllowedOrigins(ORIGINS);
+        corsConfiguration.setAllowedHeaders(HEADERS);
+        corsConfiguration.setAllowedMethods(METHODS);
         corsConfiguration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration);

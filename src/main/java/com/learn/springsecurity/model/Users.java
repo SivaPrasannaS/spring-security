@@ -1,5 +1,8 @@
 package com.learn.springsecurity.model;
 
+import static jakarta.persistence.EnumType.STRING;
+import static jakarta.persistence.GenerationType.UUID;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -11,10 +14,8 @@ import com.learn.springsecurity.enumerated.Role;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,7 +29,7 @@ import lombok.NoArgsConstructor;
 @Entity
 public class Users implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = UUID)
     private String id;
 
     @Column(nullable = false)
@@ -40,7 +41,7 @@ public class Users implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(STRING)
     private Role role;
 
     @Column(nullable = true)
