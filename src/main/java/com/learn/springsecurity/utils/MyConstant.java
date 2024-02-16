@@ -28,7 +28,7 @@ public class MyConstant {
             PUT.name(), DELETE.name(), HEAD.name());
 
     // JsonWebToken
-    public static final String JWT_LOCALHOST_URL = "http://localhost:8081";
+    public static final String JWT_LOCALHOST_URL = "http://localhost:8181";
     public static final String JWT_SECURITY_SCHEME_NAME = "bearerAuth";
     public static final String JWT_SCHEME = "bearer";
     public static final String JWT_DESCRIPTION = "Provide the JWT token.";

@@ -50,6 +50,9 @@ public class Users implements UserDetails {
     @Column(nullable = true)
     private String address;
 
+    @Column(nullable = true)
+    private String phoneNumber;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));

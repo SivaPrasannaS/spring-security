@@ -2,6 +2,10 @@ package com.learn.springsecurity.service.impl;
 
 import static com.learn.springsecurity.enumerated.Role.USER;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,41 +27,51 @@ import lombok.RequiredArgsConstructor;
 @SuppressWarnings("null")
 public class AuthenticationServiceImpl implements AuthenticationService {
 
-    private final PasswordEncoder passwordEncoder;
-    private final UsersRepository usersRepository;
-    private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
+        private final PasswordEncoder passwordEncoder;
+        private final UsersRepository usersRepository;
+        private final AuthenticationManager authenticationManager;
+        private final JwtUtil jwtUtil;
 
-    @Override
-    public RegisterResponse register(RegisterRequest request) {
-        if (!request.getPassword().equals(request.getConfirmPassword())) {
-            return RegisterResponse.builder()
-                    .message("Password and ConfirmPassword do not match")
-                    .build();
+        @Override
+        public RegisterResponse register(RegisterRequest request) {
+                if (!request.getPassword().equals(request.getConfirmPassword())) {
+                        return RegisterResponse.builder()
+                                        .message("Password and ConfirmPassword do not match")
+                                        .build();
+                }
+
+                var user = Users.builder()
+                                .name(request.getName())
+                                .email(request.getEmail())
+                                .password(passwordEncoder.encode(request.getPassword()))
+                                .role(USER)
+                                .build();
+                usersRepository.save(user);
+                return RegisterResponse.builder()
+                                .message("User registered successfully")
+                                .build();
         }
 
-        var user = Users.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(USER)
-                .build();
-        usersRepository.save(user);
-        return RegisterResponse.builder()
-                .message("User registered successfully")
-                .build();
-    }
-
-    @Override
-    public LoginResponse login(LoginRequest request) {
-        authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-        var user = usersRepository.findByEmail(request.getEmail()).orElseThrow();
-        var token = jwtUtil.generateToken(user);
-        return LoginResponse.builder()
-                .message("Logged in successfully.")
-                .token(token)
-                .build();
-    }
+        @Override
+        public LoginResponse login(LoginRequest request) {
+                authenticationManager
+                                .authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(),
+                                                request.getPassword()));
+                var user = usersRepository.findByEmail(request.getEmail()).orElseThrow();
+                Map<String, Object> claims = new HashMap<>();
+                claims.put("user", Map.of(
+                                "id", user.getId(),
+                                "name", user.getName(),
+                                "email", user.getEmail(),
+                                "role", user.getRole().toString(),
+                                "image", Optional.ofNullable(user.getImage()).orElse(""),
+                                "address", Optional.ofNullable(user.getAddress()).orElse(""),
+                                "phoneNumber", Optional.ofNullable(user.getPhoneNumber()).orElse("")));
+                var token = jwtUtil.generateToken(claims, user);
+                return LoginResponse.builder()
+                                .message("Logged in successfully.")
+                                .token(token)
+                                .build();
+        }
 
 }
