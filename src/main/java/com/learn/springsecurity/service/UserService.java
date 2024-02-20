@@ -1,10 +1,11 @@
 package com.learn.springsecurity.service;
 
-import com.learn.springsecurity.dto.response.BasicResponse;
-import com.learn.springsecurity.dto.response.UserResponse;
+import java.security.Principal;
+
+import com.learn.springsecurity.dto.request.PasswordRequest;
 
 public interface UserService {
 
-    BasicResponse<UserResponse> getAllUser();
+    void forgotPassword(PasswordRequest request, Principal principal);
 
 }

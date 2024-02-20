@@ -6,6 +6,8 @@ import static com.learn.springsecurity.utils.MyConstant.REGISTER;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.EXPECTATION_FAILED;
 
+import java.io.IOException;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,11 +20,15 @@ import com.learn.springsecurity.dto.response.LoginResponse;
 import com.learn.springsecurity.dto.response.RegisterResponse;
 import com.learn.springsecurity.service.AuthenticationService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping(AUTH)
+@Tag(name = "Authentication")
+@RequiredArgsConstructor
 public class AuthenticationController {
 
     private final AuthenticationService authService;
@@ -47,8 +53,16 @@ public class AuthenticationController {
             return new ResponseEntity<>(response, ACCEPTED);
         } catch (Exception e) {
             response.setMessage("Login failed!");
-            response.setToken("");
+            response.setAccessToken("");
+            response.setRefreshToken("");
             return new ResponseEntity<>(response, EXPECTATION_FAILED);
         }
+    }
+
+    @PostMapping("/refresh-token")
+    public void refreshToken(
+            HttpServletRequest request,
+            HttpServletResponse response) throws IOException {
+        authService.refreshToken(request, response);
     }
 }

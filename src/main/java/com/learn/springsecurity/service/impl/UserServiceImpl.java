@@ -1,14 +1,14 @@
 package com.learn.springsecurity.service.impl;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.security.Principal;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.learn.springsecurity.dto.response.BasicResponse;
-import com.learn.springsecurity.dto.response.UserResponse;
-import com.learn.springsecurity.model.Users;
-import com.learn.springsecurity.repository.UsersRepository;
+import com.learn.springsecurity.dto.request.PasswordRequest;
+import com.learn.springsecurity.model.User;
+import com.learn.springsecurity.repository.UserRepository;
 import com.learn.springsecurity.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -17,23 +17,20 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UsersRepository usersRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
 
     @Override
-    public BasicResponse<UserResponse> getAllUser() {
-        List<Users> users = usersRepository.findAll();
-        List<UserResponse> userResponse = users.stream()
-                .map(user -> UserResponse.builder()
-                        .id(user.getId())
-                        .name(user.getName())
-                        .email(user.getEmail())
-                        .password(user.getPassword())
-                        .role(user.getRole())
-                        .image(user.getImage())
-                        .address(user.getAddress())
-                        .build())
-                .collect(Collectors.toList());
-        return BasicResponse.<UserResponse>builder().message("User data fetched successfully!").data(userResponse)
-                .build();
+    public void forgotPassword(PasswordRequest request, Principal principal) {
+        var user = (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword()))
+            throw new IllegalStateException("Wrong password");
+
+        if (!request.getNewPassword().equals(request.getConfirmationPassword()))
+            throw new IllegalStateException("Password are not the same");
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 }

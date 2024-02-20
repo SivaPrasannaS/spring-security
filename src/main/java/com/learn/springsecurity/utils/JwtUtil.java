@@ -24,6 +24,12 @@ public class JwtUtil {
     @Value("${application.security.jwt.secret_key}")
     private String secret_key;
 
+    @Value("${application.security.jwt.expiration}")
+    private long expiration_date;
+
+    @Value("${application.security.jwt.refresh_token.expiration}")
+    private long refresh_expiration_date;
+
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -51,11 +57,19 @@ public class JwtUtil {
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+        return buildToken(extraClaims, userDetails, expiration_date);
+    }
+
+    public String generateRefreshToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+        return buildToken(extraClaims, userDetails, refresh_expiration_date);
+    }
+
+    private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(currentTimeMillis()))
-                .setExpiration(new Date(currentTimeMillis() + 1000 * 60 * 24))
+                .setExpiration(new Date(currentTimeMillis() + expiration_date))
                 .signWith(getSigningKey(), HS256)
                 .compact();
     }

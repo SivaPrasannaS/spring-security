@@ -1,25 +1,32 @@
 package com.learn.springsecurity.service.impl;
 
-import static com.learn.springsecurity.enumerated.Role.USER;
+import static com.learn.springsecurity.enumerated.TokenType.BEARER;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.learn.springsecurity.dto.request.LoginRequest;
 import com.learn.springsecurity.dto.request.RegisterRequest;
 import com.learn.springsecurity.dto.response.LoginResponse;
 import com.learn.springsecurity.dto.response.RegisterResponse;
-import com.learn.springsecurity.model.Users;
-import com.learn.springsecurity.repository.UsersRepository;
+import com.learn.springsecurity.enumerated.Role;
+import com.learn.springsecurity.model.Token;
+import com.learn.springsecurity.model.User;
+import com.learn.springsecurity.repository.TokenRepository;
+import com.learn.springsecurity.repository.UserRepository;
 import com.learn.springsecurity.service.AuthenticationService;
 import com.learn.springsecurity.utils.JwtUtil;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -28,25 +35,20 @@ import lombok.RequiredArgsConstructor;
 public class AuthenticationServiceImpl implements AuthenticationService {
 
         private final PasswordEncoder passwordEncoder;
-        private final UsersRepository usersRepository;
         private final AuthenticationManager authenticationManager;
         private final JwtUtil jwtUtil;
+        private final UserRepository userRepository;
+        private final TokenRepository tokenRepository;
 
         @Override
         public RegisterResponse register(RegisterRequest request) {
-                if (!request.getPassword().equals(request.getConfirmPassword())) {
-                        return RegisterResponse.builder()
-                                        .message("Password and ConfirmPassword do not match")
-                                        .build();
-                }
-
-                var user = Users.builder()
+                var user = User.builder()
                                 .name(request.getName())
                                 .email(request.getEmail())
                                 .password(passwordEncoder.encode(request.getPassword()))
-                                .role(USER)
+                                .role(Role.valueOf(request.getRole().toUpperCase()))
                                 .build();
-                usersRepository.save(user);
+                userRepository.save(user);
                 return RegisterResponse.builder()
                                 .message("User registered successfully")
                                 .build();
@@ -57,21 +59,65 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 authenticationManager
                                 .authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(),
                                                 request.getPassword()));
-                var user = usersRepository.findByEmail(request.getEmail()).orElseThrow();
+                var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
                 Map<String, Object> claims = new HashMap<>();
-                claims.put("user", Map.of(
-                                "id", user.getId(),
-                                "name", user.getName(),
-                                "email", user.getEmail(),
-                                "role", user.getRole().toString(),
-                                "image", Optional.ofNullable(user.getImage()).orElse(""),
-                                "address", Optional.ofNullable(user.getAddress()).orElse(""),
-                                "phoneNumber", Optional.ofNullable(user.getPhoneNumber()).orElse("")));
-                var token = jwtUtil.generateToken(claims, user);
+                claims.put("role", user.getRole().toString());
+                var accessToken = jwtUtil.generateToken(claims, user);
+                var refreshToken = jwtUtil.generateRefreshToken(claims, user);
+                revokeAllUserTokens(user);
+                saveUserToken(user, accessToken);
                 return LoginResponse.builder()
                                 .message("Logged in successfully.")
-                                .token(token)
+                                .accessToken(accessToken)
+                                .refreshToken(refreshToken)
                                 .build();
+        }
+
+        private void saveUserToken(User user, String accessToken) {
+                var token = Token.builder()
+                                .user(user)
+                                .token(accessToken)
+                                .tokenType(BEARER)
+                                .expired(false)
+                                .revoked(false)
+                                .build();
+                tokenRepository.save(token);
+        }
+
+        private void revokeAllUserTokens(User user) {
+                var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
+                if (validUserTokens.isEmpty())
+                        return;
+                validUserTokens.forEach(token -> {
+                        token.setExpired(true);
+                        token.setRevoked(true);
+                });
+                tokenRepository.saveAll(validUserTokens);
+        }
+
+        @Override
+        public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+                final String authHeader = request.getHeader(AUTHORIZATION);
+                final String refreshToken;
+                final String userEmail;
+                if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                        return;
+                }
+                refreshToken = authHeader.substring(7);
+                userEmail = jwtUtil.extractUsername(refreshToken);
+                if (userEmail != null) {
+                        var user = this.userRepository.findByEmail(userEmail).orElseThrow();
+                        if (jwtUtil.isTokenValid(refreshToken, user)) {
+                                var accessToken = jwtUtil.generateToken(user);
+                                revokeAllUserTokens(user);
+                                saveUserToken(user, accessToken);
+                                var authResponse = LoginResponse.builder()
+                                                .accessToken(accessToken)
+                                                .refreshToken(refreshToken)
+                                                .build();
+                                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
+                        }
+                }
         }
 
 }
