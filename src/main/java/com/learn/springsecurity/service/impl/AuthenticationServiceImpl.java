@@ -112,6 +112,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                                 revokeAllUserTokens(user);
                                 saveUserToken(user, accessToken);
                                 var authResponse = LoginResponse.builder()
+                                                .message("New access and refresh token generated successfully.")
                                                 .accessToken(accessToken)
                                                 .refreshToken(refreshToken)
                                                 .build();
