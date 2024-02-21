@@ -2,6 +2,7 @@ package com.learn.springsecurity.controller;
 
 import static com.learn.springsecurity.utils.MyConstant.AUTH;
 import static com.learn.springsecurity.utils.MyConstant.LOGIN;
+import static com.learn.springsecurity.utils.MyConstant.REFRESR_TOKEN;
 import static com.learn.springsecurity.utils.MyConstant.REGISTER;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.EXPECTATION_FAILED;
@@ -58,7 +59,7 @@ public class AuthenticationController {
         }
     }
 
-    @PostMapping("/refresh-token")
+    @PostMapping(REFRESR_TOKEN)
     public void refreshToken(
             HttpServletRequest request,
             HttpServletResponse response) throws IOException {

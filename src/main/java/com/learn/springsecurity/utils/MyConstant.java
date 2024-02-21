@@ -20,6 +20,7 @@ public class MyConstant {
         // End Points
         public static final String LOGIN = "/login";
         public static final String REGISTER = "/register";
+        public static final String REFRESR_TOKEN = "/refresh-token";
         public static final String LOGOUT = "/logout";
         public static final String FORGOT_PASSWORD = "/forgot-password";
 
