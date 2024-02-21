@@ -63,13 +63,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 Map<String, Object> claims = new HashMap<>();
                 claims.put("role", user.getRole().toString());
                 var accessToken = jwtUtil.generateToken(claims, user);
-                var refreshToken = jwtUtil.generateRefreshToken(claims, user);
                 revokeAllUserTokens(user);
                 saveUserToken(user, accessToken);
                 return LoginResponse.builder()
                                 .message("Logged in successfully.")
                                 .accessToken(accessToken)
-                                .refreshToken(refreshToken)
                                 .build();
         }
 
@@ -112,9 +110,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                                 revokeAllUserTokens(user);
                                 saveUserToken(user, accessToken);
                                 var authResponse = LoginResponse.builder()
-                                                .message("New access and refresh token generated successfully.")
+                                                .message("New access token generated successfully.")
                                                 .accessToken(accessToken)
-                                                .refreshToken(refreshToken)
                                                 .build();
                                 new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
                         }

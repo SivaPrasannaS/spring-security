@@ -54,7 +54,6 @@ public class AuthenticationController {
         } catch (Exception e) {
             response.setMessage("Login failed!");
             response.setAccessToken("");
-            response.setRefreshToken("");
             return new ResponseEntity<>(response, EXPECTATION_FAILED);
         }
     }
