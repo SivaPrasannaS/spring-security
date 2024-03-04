@@ -36,6 +36,16 @@ public class MyConstant {
         public static final List<String> METHODS = Arrays.asList(GET.name(), POST.name(), PATCH.name(),
                         PUT.name(), DELETE.name(), HEAD.name());
 
+        // Swagger Info
+        public static final String SWAGGER_INFO_TITLE = "My API";
+        public static final String SWAGGER_INFO_DESCRIPTION = "This is a sample API documentation";
+        public static final String SWAGGER_INFO_VERSION = "1.0.0";
+        public static final String SWAGGER_INFO_CONTACT_NAME = "Your Name";
+        public static final String SWAGGER_INFO_CONTACT_EMAIL = "your.email@example.com";
+        public static final String SWAGGER_INFO_CONTACT_URL = "https://example.com";
+        public static final String SWAGGER_INFO_LISENCE_NAME = "Apache 2.0";
+        public static final String SWAGGER_INFO_LISENCE_URL = "https://www.apache.org/licenses/LICENSE-2.0.html";
+
         // JsonWebToken
         public static final String JWT_LOCALHOST_URL = "http://localhost:8181";
         public static final String JWT_SECURITY_SCHEME_NAME = "bearerAuth";
